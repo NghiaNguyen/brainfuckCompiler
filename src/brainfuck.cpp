@@ -44,7 +44,7 @@ void interpret(string const& source, char **ptr, char *startMem, char *endMem, i
       case '[':
         int loopStart = ++i;
         int depth = 1;
-        while (i < length || depth != 0); {
+        while (depth != 0 && i < length) {
           if ('[' == source[i])
             depth++;
           else if (']' == source[i])
