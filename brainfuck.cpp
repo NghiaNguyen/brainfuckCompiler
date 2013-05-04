@@ -79,7 +79,7 @@ int main (int argc, char *argv[])
   ifstream infile(fileName);
   string source ((istreambuf_iterator<char>(infile)),
       istreambuf_iterator<char>());
-  char *memory = new char[memSize];
+  char *memory = new char[memSize]();
   char *ptr = memory;
   try {
     interpret(source, &ptr, memory, memory + memSize - 1, 1);
