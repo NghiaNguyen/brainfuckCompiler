@@ -43,7 +43,17 @@ void interpret(string const& source, char **ptr, char *startMem, char *endMem, i
         break;
       case '[':
         int loopStart = ++i;
-        while (source[i++] != ']');
+        int depth = 1;
+        while (i < length || depth != 0); {
+          if ('[' == source[i])
+            depth++;
+          else if (']' == source[i])
+            depth--;
+          i++;
+        }
+        if (depth != 0) {
+          throw -1;
+        }
         string loop = source.substr(loopStart, i - loopStart + 1);
         while (**ptr != 0) {
           interpret(loop, ptr, startMem, endMem, lineNum);
@@ -84,7 +94,10 @@ int main (int argc, char *argv[])
   try {
     interpret(source, &ptr, memory, memory + memSize - 1, 1);
   } catch (int lineNum) {
-    cout << fileName << ":" << lineNum  << ": error: memory out of bound.";
+    if (lineNum > 0)
+      cout << fileName << ":" << lineNum  << ": error: memory out of bound.";
+    else
+      cout << "Unclosed loop detected.\n";
     return 2;
   }
   infile.close();
