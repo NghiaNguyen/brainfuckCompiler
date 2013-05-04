@@ -4,6 +4,8 @@
 #include <sstream>
 using namespace std;
 
+bool g_debug = false;
+
 void checkMemoryBound(char *ptr, char *startMem, char *endMem, int lineNum)
 {
   if (ptr < startMem || ptr > endMem) {
@@ -11,11 +13,14 @@ void checkMemoryBound(char *ptr, char *startMem, char *endMem, int lineNum)
   }
 }
 
-void interpret(string const& source, char **ptr, char *startMem, char *endMem, int lineNum)
+void interpret(string const& source, char **ptr, char *startMem, char *endMem, int lineNum, int k)
 {
   size_t length = source.length();
   for (size_t i = 0; i < length; i++) {
     char command = source[i];
+    if (g_debug) {
+      cout << "line: " << lineNum << ":" << i + k  << ":" << endl << "cell: " << (*ptr - startMem) << " value: " << (int)**ptr << endl;
+    }
     switch (command) {
       case '\n':
         lineNum++;
@@ -51,12 +56,13 @@ void interpret(string const& source, char **ptr, char *startMem, char *endMem, i
             depth--;
           i++;
         }
+        i--;
         if (depth != 0) {
           throw -1;
         }
-        string loop = source.substr(loopStart, i - loopStart + 1);
+        string loop = source.substr(loopStart, i - loopStart);
         while (**ptr != 0) {
-          interpret(loop, ptr, startMem, endMem, lineNum);
+          interpret(loop, ptr, startMem, endMem, lineNum, i - loop.length() - 1);
         }
         break;
     }
@@ -92,7 +98,7 @@ int main (int argc, char *argv[])
   char *memory = new char[memSize]();
   char *ptr = memory;
   try {
-    interpret(source, &ptr, memory, memory + memSize - 1, 1);
+    interpret(source, &ptr, memory, memory + memSize - 1, 1, 1);
   } catch (int lineNum) {
     if (lineNum > 0)
       cout << fileName << ":" << lineNum  << ": error: memory out of bound.";
