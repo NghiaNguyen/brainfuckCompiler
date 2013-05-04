@@ -4,15 +4,15 @@
 #include <sstream>
 using namespace std;
 
-const int PARSE_INT_ERROR = 1;
-
-void checkMemoryBound(char *ptr, char *startMem, char *endMem, int lineNum) {
+void checkMemoryBound(char *ptr, char *startMem, char *endMem, int lineNum)
+{
   if (ptr < startMem || ptr > endMem) {
     throw lineNum;
   }
 }
 
-void interpret(string const& source, char **ptr, char *startMem, char *endMem, int lineNum) {
+void interpret(string const& source, char **ptr, char *startMem, char *endMem, int lineNum)
+{
   size_t length = source.length();
   for (size_t i = 0; i < length; i++) {
     char command = source[i];
