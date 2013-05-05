@@ -2,6 +2,8 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <stack>
+
 using namespace std;
 
 bool g_debug = false;
@@ -13,13 +15,17 @@ void checkMemoryBound(char *ptr, char *startMem, char *endMem, int lineNum)
   }
 }
 
-void interpret(string const& source, char **ptr, char *startMem, char *endMem, int lineNum, int k)
+void interpret(string const& source, char **ptr, char *startMem, char *endMem)
 {
+  int lineNum = 0;
+  stack<int> loopStack;
   size_t length = source.length();
   for (size_t i = 0; i < length; i++) {
     char command = source[i];
     if (g_debug) {
-      cout << "line: " << lineNum << ":" << i + k  << ":" << endl << "cell: " << (*ptr - startMem) << " value: " << (int)**ptr << endl;
+      cout << "line: " << lineNum << ":" << i << ":" << endl
+           << "cell: " << (*ptr - startMem) << " "
+           << "value: " << (int)**ptr << endl;
     }
     switch (command) {
       case '\n':
@@ -47,24 +53,22 @@ void interpret(string const& source, char **ptr, char *startMem, char *endMem, i
         **ptr = getchar();
         break;
       case '[':
-        int loopStart = ++i;
-        int depth = 1;
-        while (depth != 0 && i < length) {
-          if ('[' == source[i])
-            depth++;
-          else if (']' == source[i])
-            depth--;
-          i++;
-        }
-        i--;
-        if (depth != 0) {
-          throw -1;
-        }
-        string loop = source.substr(loopStart, i - loopStart);
-        while (**ptr != 0) {
-          interpret(loop, ptr, startMem, endMem, lineNum, i - loop.length() - 1);
+        if (0 == **ptr) {
+          int depth = 1;
+          while (depth != 0 && i < length) {
+            i++;
+            if ('[' == source[i])
+              depth++;
+            else if (']' == source[i])
+              depth--;
+          }
+        } else {
+          loopStack.push(i);
         }
         break;
+      case ']':
+        i = loopStack.top() - 1;
+        loopStack.pop();
     }
   }
 }
@@ -98,7 +102,7 @@ int main (int argc, char *argv[])
   char *memory = new char[memSize]();
   char *ptr = memory;
   try {
-    interpret(source, &ptr, memory, memory + memSize - 1, 1, 1);
+    interpret(source, &ptr, memory, memory + memSize - 1);
   } catch (int lineNum) {
     if (lineNum > 0)
       cout << fileName << ":" << lineNum  << ": error: memory out of bound.";
